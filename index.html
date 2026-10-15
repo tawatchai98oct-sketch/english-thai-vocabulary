@@ -4,34 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0c0e12">
-<title>Vocabulary</title>
+<title>Vocabulary V7</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:#0c0e12;color:#e8eaf0;font-family:Inter,Arial,"Noto Sans Thai",sans-serif}
-main{max-width:1050px;margin:48px auto;padding:0 22px}
+main{max-width:760px;margin:24px auto;padding:0 14px}
 .sheet{border:1px solid #272b34;border-radius:16px;overflow:hidden;background:#14171d}
-.entry{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 30px;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid #292d35}
+.entry{display:grid;grid-template-columns:24px minmax(0,1fr) minmax(0,1fr);gap:9px;align-items:center;padding:7px 10px;border-bottom:1px solid #292d35}
 .entry:last-child{border-bottom:0}
-input.word{min-width:0;width:100%;padding:15px 16px;background:#1b1f27;border:1px solid #343943;border-radius:10px;color:#f2f3f5;font:inherit;font-size:18px;outline:0}
+input.word{min-width:0;width:100%;padding:10px 12px;background:#1b1f27;border:1px solid #343943;border-radius:10px;color:#f2f3f5;font:inherit;font-size:16px;outline:0}
 input.word:focus{border-color:#7a899f}
 button{cursor:pointer;font:inherit}
 .delete{border:0;background:transparent;color:#77808e;font-size:24px;padding:6px 0}
 .delete:hover{color:#f18b8b}
-.toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:16px}
-.add{background:#252c38;border:1px solid #384151;border-radius:10px;color:#e8edf6;padding:12px 20px;font-size:15px;font-weight:600}
-.add:hover{background:#30394a}
 #status{color:#7e8b83;font-size:12px}
-@media(max-width:560px){main{margin:18px auto;padding:0 10px}.entry{gap:7px;padding:9px;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 22px}input.word{font-size:15px;padding:12px 9px}.delete{font-size:21px}}
+@media(max-width:560px){main{margin:12px auto;padding:0 8px}.entry{gap:6px;padding:6px;grid-template-columns:20px minmax(0,1fr) minmax(0,1fr)}input.word{font-size:14px;padding:9px 7px}.delete{font-size:21px}}
 </style>
 </head>
 <body>
 <main>
   <div class="sheet" id="rows"></div>
-  <div class="toolbar">
-    <button class="add" id="add" type="button">+ Add Word</button>
-    <span id="status" aria-live="polite">Saved</span>
-  </div>
+  <span id="status" role="status" aria-live="polite" style="position:absolute;left:-9999px">Saved</span>
 </main>
 <script>
 const KEY='english_thai_vocab_v1';
@@ -40,6 +34,11 @@ try{words=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!Array.isArray(words))words=Array.from({length:4},()=>({en:'',th:''}));
 words=words.map(w=>({en:String(w.en||w.english||''),th:String(w.th||w.thai||'')}));
 const rows=document.getElementById('rows'),status=document.getElementById('status');
+function ensureBlankRow(){
+  if(!words.length || words[words.length-1].en.trim() || words[words.length-1].th.trim()){
+    words.push({en:'',th:''});save();render();
+  }
+}
 const timers=new Map();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(words));status.textContent='Saved'}catch(e){status.textContent='Save unavailable'}}
 function render(){
@@ -49,17 +48,22 @@ function render(){
     const en=document.createElement('input');en.className='word';en.value=word.en;en.autocomplete='off';en.spellcheck=false;en.setAttribute('aria-label','English word '+(i+1));
     const th=document.createElement('input');th.className='word';th.value=word.th;th.lang='th';th.autocomplete='off';th.setAttribute('aria-label','Thai meaning '+(i+1));
     const del=document.createElement('button');del.className='delete';del.textContent='×';del.type='button';del.setAttribute('aria-label','Delete row '+(i+1));
-    row.append(en,th,del);rows.append(row);
+    row.append(del,en,th);rows.append(row);
     en.addEventListener('input',()=>{
       clearTimeout(timers.get(word));word.en=en.value;word.th='';th.value='';save();
       if(word.en.trim())timers.set(word,setTimeout(()=>translate(word,th),650));
+      if(i===words.length-1 && word.en.trim()){
+        const caret=en.selectionStart;
+        ensureBlankRow();
+        const current=rows.children[i].querySelector('input.word');
+        current.focus();current.setSelectionRange(caret,caret);
+      }
     });
-    th.addEventListener('input',()=>{word.th=th.value;save()});
+    th.addEventListener('input',()=>{word.th=th.value;save();if(i===words.length-1&&word.th.trim())ensureBlankRow()});
     del.addEventListener('click',()=>{
       clearTimeout(timers.get(word));
       const idx=words.indexOf(word);if(idx!==-1)words.splice(idx,1);
-      if(!words.length)words.push({en:'',th:''});
-      save();render();
+      save();ensureBlankRow();render();
     });
     if(word.en&&!word.th)translate(word,th);
   });
@@ -83,15 +87,11 @@ async function translate(word,field){
         if(Array.isArray(category[1]))for(const alternative of category[1])add(alternative);
       }
     }
-    const translated=options.slice(0,5).join(', ');
+    const translated=options.slice(0,3).join(', ');
     if(words.includes(word)&&word.en.trim()===query&&!word.th&&translated){word.th=translated;field.value=translated;save()}
     else status.textContent='Saved';
   }catch(e){status.textContent='Saved · Translation unavailable'}
 }
-document.getElementById('add').onclick=()=>{
-  words.push({en:'',th:''});save();render();
-  rows.lastElementChild.querySelector('input').focus();
-};
-save();render();
+ensureBlankRow();save();render();
 </script>
 </body></html>
