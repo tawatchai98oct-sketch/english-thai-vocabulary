@@ -11,7 +11,7 @@
 body{margin:0;background:#0c0e12;color:#e8eaf0;font-family:Inter,Arial,"Noto Sans Thai",sans-serif}
 main{width:100%;max-width:none;margin:0;padding:16px}
 .sheet{display:flex;flex-direction:column-reverse;justify-content:flex-end;min-height:calc(100dvh - 32px);border:1px solid #272b34;border-radius:16px;overflow:hidden;background:#14171d}
-.entry{display:grid;grid-template-columns:24px minmax(0,1fr) minmax(0,1fr);gap:9px;align-items:center;padding:7px 10px;border-bottom:1px solid #292d35}
+.entry{display:grid;grid-template-columns:24px minmax(0,3fr) minmax(0,7fr);gap:9px;align-items:center;padding:7px 10px;border-bottom:1px solid #292d35}
 .entry:first-child{border-bottom:0}
 input.word{min-width:0;width:100%;padding:10px 12px;background:#1b1f27;border:1px solid #343943;border-radius:10px;color:#f2f3f5;font:inherit;font-size:16px;outline:0}
 input.word:focus{border-color:#7a899f}
@@ -19,7 +19,7 @@ button{cursor:pointer;font:inherit}
 .delete{border:0;background:transparent;color:#77808e;font-size:24px;padding:6px 0}
 .delete:hover{color:#f18b8b}
 #status{color:#7e8b83;font-size:12px}
-@media(max-width:560px){main{margin:0;padding:8px}.sheet{min-height:calc(100dvh - 16px)}.entry{gap:6px;padding:6px;grid-template-columns:20px minmax(0,1fr) minmax(0,1fr)}input.word{font-size:14px;padding:9px 7px}.delete{font-size:21px}}
+@media(max-width:560px){main{margin:0;padding:8px}.sheet{min-height:calc(100dvh - 16px)}.entry{gap:6px;padding:6px;grid-template-columns:20px minmax(0,3fr) minmax(0,7fr)}input.word{font-size:14px;padding:9px 7px}.delete{font-size:21px}}
 </style>
 </head>
 <body>
