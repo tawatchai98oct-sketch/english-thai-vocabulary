@@ -68,11 +68,22 @@ async function translate(word,field){
   const query=word.en.trim();if(!query)return;
   try{
     status.textContent='Translating…';
-    const url='https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&q='+encodeURIComponent(query);
+    // Request both the primary translation and dictionary alternatives.
+    const url='https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=th&dt=t&dt=bd&q='+encodeURIComponent(query);
     const response=await fetch(url);
     if(!response.ok)throw Error('Translation unavailable');
     const data=await response.json();
-    const translated=(data[0]||[]).map(x=>x[0]||'').join('').trim();
+    const primary=(data[0]||[]).map(x=>x[0]||'').join('').trim();
+    const options=[];
+    const add=v=>{if(typeof v==='string'){v=v.trim();if(v&&!options.includes(v))options.push(v)}};
+    add(primary);
+    if(Array.isArray(data[1])){
+      for(const category of data[1]){
+        // Dictionary entries typically contain alternatives in category[1].
+        if(Array.isArray(category[1]))for(const alternative of category[1])add(alternative);
+      }
+    }
+    const translated=options.slice(0,5).join(', ');
     if(words.includes(word)&&word.en.trim()===query&&!word.th&&translated){word.th=translated;field.value=translated;save()}
     else status.textContent='Saved';
   }catch(e){status.textContent='Saved · Translation unavailable'}
